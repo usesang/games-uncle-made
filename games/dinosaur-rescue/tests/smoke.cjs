@@ -4,7 +4,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const source = fs.readFileSync(path.join(__dirname, '..', 'game.js'), 'utf8')
-  .replace('  game = initialGame();', '  game = initialGame(); muted = true; globalThis.testGame = {get:()=>game, update, nextStage, beginStage, callDad};');
+  .replace('  game = initialGame();', '  game = initialGame(); muted = true; globalThis.testGame = {get:()=>game, getInput:()=>input, update, nextStage, beginStage, callDad};');
 
 function element() {
   return {textContent:'',innerHTML:'',style:{},classList:{add(){},remove(){}},addEventListener(){},setAttribute(){},removeAttribute(){}};
@@ -13,13 +13,23 @@ const nodes = new Map();
 const gameSurfaceEvents = new Map();
 const gameSurface = element();
 gameSurface.addEventListener = (name, listener, options) => gameSurfaceEvents.set(name, {listener, options});
+function control(name) {
+  const button = element();
+  button.dataset = {control:name};
+  button.events = new Map();
+  button.addEventListener = (event, listener) => button.events.set(event, listener);
+  button.setPointerCapture = () => {};
+  return button;
+}
+const leftControl = control('left');
+const jumpControl = control('jump');
 const document = {
   getElementById(id) {
     if (!nodes.has(id)) nodes.set(id, id === 'game' ? {getContext(){return {}}} : element());
     return nodes.get(id);
   },
   querySelector(selector){return selector === '.shell' ? gameSurface : null},
-  querySelectorAll(){return []},
+  querySelectorAll(selector){return selector === '[data-control]' ? [leftControl,jumpControl] : []},
   addEventListener(){}
 };
 class Image { set src(value){this._src=value;this.complete=false;this.naturalWidth=0} }
@@ -40,6 +50,13 @@ assert.equal(prevented, true, 'Safari pinch gestures must be canceled');
 const firstStage=sandbox.testGame.get();
 assert.equal(firstStage.hearts,5);
 firstStage.mode='playing';
+firstStage.player.onGround=true;
+leftControl.events.get('pointerdown')({preventDefault(){},pointerId:1});
+jumpControl.events.get('pointerdown')({preventDefault(){},pointerId:2});
+assert.equal(sandbox.testGame.getInput().left,true,'move stays pressed during jump');
+assert.ok(firstStage.player.vy<0,'jump works with move held');
+leftControl.events.get('pointerup')();
+assert.equal(sandbox.testGame.getInput().left,false,'move releases normally');
 const petStartY=firstStage.pet.y;
 const petStartX=firstStage.pet.x;
 firstStage.player.x+=80;
@@ -100,4 +117,4 @@ sandbox.testGame.callDad();
 assert.equal(rexGame.dad.target.kind,'rex','active T-rex can be the nearest target');
 for(let i=0;i<160&&rexGame.tyrannoStunned===0;i++)sandbox.testGame.update(.033);
 assert.ok(rexGame.tyrannoStunned>0,'Dad can stun T-rex for five seconds');
-console.log('All 5 stage transitions and Dad target selection passed.');
+console.log('Multitouch controls, 5 stage transitions, and Dad target selection passed.');
