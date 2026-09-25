@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#173d43">
+  <meta name="description" content="주안이와 시안이가 공룡알을 구하는 2D 아케이드 게임">
+  <title>주안이와 시안이: 공룡알 대소동</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23173d43'/%3E%3Cellipse cx='32' cy='35' rx='20' ry='25' fill='%23f4d491'/%3E%3Ccircle cx='27' cy='29' r='3' fill='%23173d43'/%3E%3Cpath d='M26 41q6 5 12 0' fill='none' stroke='%23173d43' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="stages.css">
+  <link rel="stylesheet" href="intro.css">
+  <link rel="stylesheet" href="mobile.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <a class="collection-back" href="../../" aria-label="게임 모음집으로 돌아가기">← 모음집</a>
+      <div class="brand"><span class="brand-icon">🦖</span><div><span class="eyebrow">DINOSAUR RESCUE</span><h1>주안이와 시안이 <span>공룡알 대소동</span></h1></div></div>
+      <button id="soundButton" class="icon-button" type="button" aria-label="소리 끄기" title="소리 끄기">🔊</button>
+    </header>
+
+    <section class="game-frame" aria-label="공룡알 대소동 게임">
+      <div class="game-stage">
+        <canvas id="game" width="960" height="540" aria-label="공룡알을 모아 둥지까지 가는 게임"></canvas>
+        <div id="stagePill" class="stage-pill">1 / 5 · 햇살 초원</div>
+        <div id="gameOverlay" class="overlay intro">
+          <img class="intro-art" src="assets/concepts/title-screen-v2.png" alt="공룡알을 안은 주안이와 시안이가 다가오는 티라노를 보고 놀라는 장면">
+          <div class="overlay-card">
+            <span id="overlayKicker" class="overlay-kicker">DINOSAUR RESCUE</span>
+            <h2 id="overlayTitle">공룡알을<br>구하러 가자!</h2>
+            <p id="overlayText">5개 지역을 탐험하세요. 두 친구를 교대하며 공룡알을 모으고, 공룡들을 피해 둥지까지 가요.</p>
+            <button id="playButton" class="play-button" type="button">게임 시작 <span aria-hidden="true">→</span></button>
+            <div id="overlayHint" class="overlay-hint">이동 ← → · 점프 Space · 교대 C · 아빠 V</div>
+          </div>
+        </div>
+        <div id="announcement" class="announcement" aria-live="polite"></div>
+        <nav class="touch-controls" aria-label="터치 게임 조작">
+          <div class="move-buttons"><button type="button" data-control="left" aria-label="왼쪽 이동">◀</button><button type="button" data-control="right" aria-label="오른쪽 이동">▶</button></div>
+          <div class="action-buttons"><button type="button" data-control="dad">아빠</button><button type="button" data-control="switch">교대</button><button type="button" data-control="jump">점프</button></div>
+        </nav>
+      </div>
+      <div class="hud" aria-live="polite">
+        <div class="hud-item"><span>구한 공룡알</span><strong><span id="eggCount">0</span><small> / <span id="eggTotal">4</span></small></strong></div>
+        <div class="hud-item"><span>점수</span><strong id="scoreCount">0</strong></div>
+        <div class="hud-item"><span>남은 하트</span><strong id="heartCount" class="hearts">♥ ♥ ♥ ♥ ♥</strong></div>
+        <div class="hud-item current-hero"><span>탐험가</span><strong id="heroName">주안이</strong></div>
+      </div>
+    </section>
+
+    <div class="below-game">
+      <div class="character-help"><span class="character-badge juan">주</span><p><strong>주안이</strong> 바위에 부딪히면 부술 수 있어요.</p></div>
+      <div class="character-help"><span class="character-badge sian">시</span><p><strong>시안이</strong> 공중에서 한 번 더 점프할 수 있어요.</p></div>
+      <div class="character-help"><span class="character-badge dad">아</span><p><strong>아빠</strong> V를 누르면 달려와 공룡을 꿀밤 때려요.</p></div>
+      <div class="keyboard-help">← → 이동 <span>·</span> Space / ↑ 점프 <span>·</span> C 교대 <span>·</span> V 아빠 <span>·</span> P 일시정지</div>
+    </div>
+
+  </main>
+  <script src="game.js" defer></script>
+</body>
+</html>
