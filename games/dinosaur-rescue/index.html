@@ -10,17 +10,20 @@
   <meta name="description" content="주안이와 시안이가 공룡알을 구하는 2D 아케이드 게임">
   <title>주안이와 시안이: 공룡알 대소동</title>
   <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23173d43'/%3E%3Cellipse cx='32' cy='35' rx='20' ry='25' fill='%23f4d491'/%3E%3Ccircle cx='27' cy='29' r='3' fill='%23173d43'/%3E%3Cpath d='M26 41q6 5 12 0' fill='none' stroke='%23173d43' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="stages.css">
   <link rel="stylesheet" href="intro.css">
   <link rel="stylesheet" href="mobile.css">
+  <link rel="stylesheet" href="../../install.css">
 </head>
 <body>
   <main class="shell">
     <header class="topbar">
       <a class="collection-back" href="../../" aria-label="게임 모음집으로 돌아가기">← 모음집</a>
       <div class="brand"><span class="brand-icon">🦖</span><div><span class="eyebrow">DINOSAUR RESCUE</span><h1>주안이와 시안이 <span>공룡알 대소동</span></h1></div></div>
+      <button class="install-open game-install" type="button" data-install-trigger hidden>앱 설치</button>
       <button id="soundButton" class="icon-button" type="button" aria-label="소리 끄기" title="소리 끄기">🔊</button>
     </header>
 
@@ -62,5 +65,6 @@
 
   </main>
   <script src="game.js" defer></script>
+  <script src="../../install.js" defer></script>
 </body>
 </html>

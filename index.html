@@ -10,7 +10,9 @@
   <meta name="description" content="큰아빠가 만든 브라우저 게임 모음집. 컴퓨터와 모바일에서 바로 즐겨 보세요.">
   <title>큰아빠가 만든 게임들</title>
   <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="games/dinosaur-rescue/icon-192.png">
   <link rel="stylesheet" href="collection.css">
+  <link rel="stylesheet" href="install.css">
   <style>
     .copyright-link{color:inherit;text-decoration:none}
     .copyright-link:hover,.copyright-link:focus-visible{color:#275d57;text-decoration:underline}
@@ -29,7 +31,7 @@
           <p class="eyebrow">PLAY ANYWHERE · NO DOWNLOAD</p>
           <h1 id="hero-title">오늘은 어떤<br><em>모험을 할까?</em></h1>
           <p class="hero-description">컴퓨터와 휴대폰에서 바로 시작할 수 있는 작은 게임들을 모았어요. 마음에 드는 모험을 골라 즐겨 보세요!</p>
-          <a class="primary-link" href="#games">게임 골라보기 <span aria-hidden="true">↓</span></a>
+          <div class="hero-actions"><a class="primary-link" href="#games">게임 골라보기 <span aria-hidden="true">↓</span></a><button class="install-open" type="button" data-install-trigger hidden>앱으로 설치</button></div>
         </div>
         <div class="hero-decoration" aria-hidden="true"><span class="orbit orbit-one">★</span><span class="orbit orbit-two">✳</span><span class="orbit orbit-three">●</span><div class="hero-egg"><span></span><span></span><span></span></div></div>
       </section>
@@ -47,5 +49,6 @@
     </main>
     <footer class="site-footer"><a class="copyright-link" href="mailto:usesang+code@gmail.com" aria-label="usesang에게 이메일 보내기">©usesang</a><span>즐거운 모험은 계속됩니다 ✳</span></footer>
   </div>
+  <script src="install.js" defer></script>
 </body>
 </html>

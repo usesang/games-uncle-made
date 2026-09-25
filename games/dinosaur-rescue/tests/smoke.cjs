@@ -10,17 +10,32 @@ function element() {
   return {textContent:'',innerHTML:'',style:{},classList:{add(){},remove(){}},addEventListener(){},setAttribute(){},removeAttribute(){}};
 }
 const nodes = new Map();
+const gameSurfaceEvents = new Map();
+const gameSurface = element();
+gameSurface.addEventListener = (name, listener, options) => gameSurfaceEvents.set(name, {listener, options});
 const document = {
   getElementById(id) {
     if (!nodes.has(id)) nodes.set(id, id === 'game' ? {getContext(){return {}}} : element());
     return nodes.get(id);
   },
+  querySelector(selector){return selector === '.shell' ? gameSurface : null},
   querySelectorAll(){return []},
   addEventListener(){}
 };
 class Image { set src(value){this._src=value;this.complete=false;this.naturalWidth=0} }
 const sandbox = {document,window:{addEventListener(){}},Image,setTimeout(){},clearTimeout(){},requestAnimationFrame(){},console};
 vm.runInNewContext(source,sandbox,{filename:'game.js'});
+for (const name of ['touchstart','touchmove','gesturestart','gesturechange']) {
+  assert.equal(gameSurfaceEvents.get(name)?.options?.passive, false, `${name} must be cancelable`);
+}
+let prevented = false;
+gameSurfaceEvents.get('touchstart').listener({touches:[{},{}],preventDefault(){prevented=true}});
+assert.equal(prevented, true, 'a second finger must not trigger browser zoom');
+prevented = false;
+gameSurfaceEvents.get('touchstart').listener({touches:[{}],preventDefault(){prevented=true}});
+assert.equal(prevented, false, 'a single-finger button press must remain usable');
+gameSurfaceEvents.get('gesturestart').listener({preventDefault(){prevented=true}});
+assert.equal(prevented, true, 'Safari pinch gestures must be canceled');
 
 const firstStage=sandbox.testGame.get();
 assert.equal(firstStage.hearts,5);

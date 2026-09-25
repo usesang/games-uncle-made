@@ -1,0 +1,13 @@
+[hidden]{display:none!important}
+.hero-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.install-open{min-height:45px;padding:10px 17px;border:2px solid #3f8078;border-radius:14px;background:#fffdf2;color:#245e5a;font:900 14px "Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 0 #8bbab0;touch-action:manipulation}
+.install-open:hover,.install-open:focus-visible{background:#e8f6e8}
+.game-install{font-size:12px;min-height:36px;padding:5px 10px}
+.install-dialog{width:min(92vw,420px);max-height:85dvh;overflow:auto;padding:23px 24px;border:2px solid #21464a;border-radius:21px;background:#fffdf2;color:#173d43;box-shadow:0 25px 70px #0a303977;font-family:"Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif}
+.install-dialog::backdrop{background:#0b2e35a8}
+.install-dialog h2{margin:0 0 10px;font-size:23px;letter-spacing:-.06em}
+.install-dialog p,.install-dialog li{font-size:14px;line-height:1.6}
+.install-dialog ol{padding-left:23px}
+.install-dialog li+li{margin-top:8px}
+.install-dialog button{margin-top:8px;min-height:42px;padding:8px 20px;border:0;border-radius:11px;background:#173d43;color:#fff;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer}
+@media (pointer:coarse),(max-width:760px){.game-install{pointer-events:auto;min-height:33px;padding:4px 10px;border:1px solid #ffffff9c;border-radius:11px;background:#e5fff150;color:#fff;box-shadow:none;text-shadow:0 1px 3px #103b45aa;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}}

@@ -541,6 +541,14 @@
   document.addEventListener('keyup',e=>{if(e.code==='ArrowLeft'||e.code==='KeyA')input.left=false;if(e.code==='ArrowRight'||e.code==='KeyD')input.right=false});
   window.addEventListener('blur',()=>{input.left=false;input.right=false;if(game.mode==='playing')pause()});
   document.addEventListener('visibilitychange',()=>{if(document.hidden&&game.mode==='playing')pause()});
+  const gameSurface=document.querySelector('.shell');
+  gameSurface.addEventListener('touchstart',e=>{
+    if(e.touches.length>1)e.preventDefault();
+  },{capture:true,passive:false});
+  gameSurface.addEventListener('touchmove',e=>e.preventDefault(),{capture:true,passive:false});
+  for(const eventName of ['gesturestart','gesturechange']){
+    gameSurface.addEventListener(eventName,e=>e.preventDefault(),{capture:true,passive:false});
+  }
   for(const button of document.querySelectorAll('[data-control]')){
     const control=button.dataset.control;
     button.addEventListener('pointerdown',e=>{e.preventDefault();button.setPointerCapture(e.pointerId);button.classList.add('pressed');if(control==='left'||control==='right')input[control]=true;else if(control==='jump')jump();else if(control==='dad')callDad();else switchHero()});
