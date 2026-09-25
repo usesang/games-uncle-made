@@ -22,3 +22,6 @@
 @media(max-width:620px){.overlay:not(.intro) .overlay-card{width:90%;margin:0 auto;text-align:center}.overlay:not(.intro) .overlay-kicker{font-size:8px;padding:2px 7px}.overlay:not(.intro) h2{font-size:clamp(17px,4.8vw,26px);line-height:1.05;margin:4px 0}.overlay:not(.intro) p{font-size:10px;line-height:1.3;margin:3px auto;max-width:90%}.overlay:not(.intro) .play-button{font-size:12px;padding:5px 10px;margin-top:3px;box-shadow:0 3px 0 #b57331}.overlay:not(.intro) .overlay-hint{display:none}}
 .collection-back{display:inline-flex;align-items:center;justify-content:center;min-width:76px;padding:8px 11px;border:2px solid #a8d2cb;border-radius:12px;background:#ffffffd6;color:#235d57;text-decoration:none;font-size:13px;font-weight:900;white-space:nowrap}
 .collection-back:hover{background:#fff4d5}
+.game-copyright{display:none}
+.overlay.intro .game-copyright{position:absolute;left:2%;bottom:2%;z-index:2;display:inline-flex;align-items:center;min-height:32px;padding:5px 10px;border:1px solid #ffffff99;border-radius:10px;background:#173d43aa;color:#fff;text-decoration:none;font-size:12px;font-weight:800;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.overlay.intro .game-copyright:hover,.overlay.intro .game-copyright:focus-visible{background:#173d43e8;text-decoration:underline}

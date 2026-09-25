@@ -26,7 +26,11 @@
   .touch-controls [data-control="switch"]{background:#67cbd563}
   .touch-controls [data-control="dad"]{background:#d9a66b63}
   .touch-controls button:active,.touch-controls button.pressed{background:#fff5c088;transform:scale(.95);box-shadow:0 2px 9px #06293666}
-  .overlay:not(.hidden) ~ .touch-controls{opacity:0;pointer-events:none}
+  .overlay:not(.hidden) ~ .touch-controls{display:none}
+  .overlay.intro .overlay-card{right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));width:min(37%,300px);padding:8px 10px 10px}
+  .overlay.intro h2{font-size:clamp(16px,3vw,25px)}
+  .overlay.intro .play-button{min-width:126px;min-height:44px;margin-top:6px;padding:8px 13px;font-size:15px;touch-action:manipulation}
+  .overlay.intro .play-button span{margin-left:7px}
   .overlay:not(.intro){display:flex;align-items:flex-start;justify-content:center;padding:9px}
   .overlay:not(.intro) .overlay-card{max-height:calc(100% - 18px);margin:0}
 }
@@ -39,4 +43,7 @@
   .hud{min-height:36px;padding-top:2px;padding-bottom:2px}
   .hud-item strong{font-size:12px}
   .stage-pill{top:40px}
+  .overlay.intro .overlay-card{bottom:max(8px,env(safe-area-inset-bottom));padding:5px 8px 7px}
+  .overlay.intro h2{font-size:clamp(13px,2.7vw,19px)}
+  .overlay.intro .play-button{min-height:40px}
 }
