@@ -1,0 +1,16 @@
+{
+  "id": "./",
+  "name": "큰아빠가 만든 게임들",
+  "short_name": "큰아빠 게임들",
+  "description": "주안이와 시안이를 위한 브라우저 게임 모음집",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "background_color": "#f8f4e9",
+  "theme_color": "#143a40",
+  "icons": [
+    {"src": "games/dinosaur-rescue/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable"},
+    {"src": "games/dinosaur-rescue/icon.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any maskable"},
+    {"src": "games/dinosaur-rescue/icon.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable"}
+  ]
+}

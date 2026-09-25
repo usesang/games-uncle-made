@@ -507,11 +507,13 @@
     update(dt);draw();requestAnimationFrame(frame);
   }
   async function requestMobileLandscape(){
-    if(!window.matchMedia?.('(pointer: coarse)').matches||!window.screen?.orientation?.lock)return;
+    if(!window.matchMedia?.('(pointer: coarse), (max-width: 760px)').matches)return;
     try{
-      if(!document.fullscreenElement&&document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen({navigationUI:'hide'});
-    }catch{}
-    try{await window.screen.orientation.lock('landscape')}
+      if(!document.fullscreenElement&&document.documentElement.requestFullscreen){
+        await document.documentElement.requestFullscreen({navigationUI:'hide'});
+      }
+    }catch{/* Some mobile browsers only allow fullscreen from a Home Screen web app. */}
+    try{await window.screen?.orientation?.lock?.('landscape')}
     catch{/* CSS keeps the game in landscape when the browser refuses orientation lock. */}
   }
   ui.play.addEventListener('click',()=>{
