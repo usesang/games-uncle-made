@@ -9,12 +9,13 @@
 .controls-settings input[type=range]{display:block;width:100%;height:32px;accent-color:#2d9c8c;touch-action:auto}
 .settings-close{display:block;min-width:100px;min-height:42px;margin:22px 0 0 auto;padding:8px 20px;border:0;border-radius:12px;background:#ffd16a;color:#173d43;font:900 16px "Malgun Gothic",system-ui,sans-serif}
 .play-button:disabled{opacity:.82;cursor:progress;box-shadow:0 3px 0 #b57331;transform:none}
+.rotate-prompt{display:none}
 @media (pointer:coarse), (max-width:760px){
   html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;touch-action:none}
   body{background:#102d34}
   .shell{position:fixed;top:var(--game-view-top);left:var(--game-view-left);width:var(--game-view-width);height:var(--game-view-height);max-width:none;margin:0;padding:0;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#102d34;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
   .shell *{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
-  .topbar{position:absolute;z-index:12;top:7px;left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));margin:0;pointer-events:none}
+  .topbar{position:absolute;z-index:12;top:max(7px,env(safe-area-inset-top));left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));margin:0;pointer-events:none}
   .topbar .brand{display:none}
   .topbar .collection-back{pointer-events:auto;min-width:0;height:33px;padding:0 9px;border:1px solid #ffffff9c;border-radius:11px;background:#e5fff150;color:#fff;backdrop-filter:blur(12px);font-size:11px;text-shadow:0 1px 3px #103b45aa}
   .topbar .icon-button{pointer-events:auto;width:33px;height:33px;padding:0;border:1px solid #ffffff9c;border-radius:11px;background:#e5fff150;backdrop-filter:blur(12px);box-shadow:0 3px 12px #092c3955;font-size:17px}
@@ -22,7 +23,7 @@
   .game-frame{position:relative;flex:none;width:min(var(--game-view-width),calc(var(--game-view-height) * 16 / 9));aspect-ratio:16/9;overflow:hidden;border:0;border-radius:0;box-shadow:none;background:#102d34}
   .game-stage{width:100%;height:100%;aspect-ratio:auto;overflow:hidden}
   .below-game{display:none}
-  .hud{position:absolute;z-index:8;top:0;left:0;right:0;min-height:42px;justify-content:space-around;gap:5px;margin:0;padding:4px 47px 5px 86px;border:0;border-radius:0 0 12px 12px;background:linear-gradient(180deg,#0a3039d9,#0a3039a8);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 3px 12px #092c3955;color:#fff}
+  .hud{position:absolute;z-index:8;top:env(safe-area-inset-top,0px);left:0;right:0;min-height:42px;justify-content:space-around;gap:5px;margin:0;padding:4px 47px 5px 86px;border:0;border-radius:0 0 12px 12px;background:linear-gradient(180deg,#0a3039d9,#0a3039a8);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 3px 12px #092c3955;color:#fff}
   .hud-item{min-width:0;gap:1px;text-align:center}
   .hud-item>span{font-size:9px;line-height:1;color:#d8f4ed}
   .hud-item strong{font-size:14px;line-height:1.1;color:#fff}
@@ -48,13 +49,23 @@
   .overlay.intro h2{font-size:clamp(16px,3vw,25px)}
   .overlay.intro .play-button{min-width:126px;min-height:44px;margin-top:6px;padding:8px 13px;font-size:15px;touch-action:manipulation}
   .overlay.intro .play-button span{margin-left:7px}
-  .overlay:not(.intro){display:flex;align-items:flex-start;justify-content:center;padding:9px}
-  .overlay:not(.intro) .overlay-card{max-height:calc(100% - 18px);margin:0}
+  .overlay:not(.intro){display:flex;align-items:center;justify-content:center;padding:clamp(12px,2vw,24px);background:#102d34b8}
+  .overlay:not(.intro) .overlay-card{display:block;width:min(82%,640px);max-height:calc(100% - 8px);margin:0;padding:clamp(15px,2.5vw,27px);overflow-y:auto;border:2px solid #fff8dc;border-radius:24px;background:linear-gradient(155deg,#fffdf2f7,#e8f6eaf2);box-shadow:0 16px 45px #08252faa;color:#173d43;text-align:center}
+  .overlay:not(.intro) .overlay-kicker{padding:6px 12px;font-size:clamp(11px,1.4vw,15px)}
+  .overlay:not(.intro) h2{margin:10px 0;font-size:clamp(29px,5vw,52px);line-height:1.07;color:#173d43;text-shadow:none}
+  .overlay:not(.intro) p{max-width:580px;margin:8px auto;font-size:clamp(14px,1.9vw,20px);line-height:1.4;color:#315d5b}
+  .overlay:not(.intro) .play-button{min-width:min(76%,260px);min-height:54px;margin-top:12px;padding:8px 18px;font-size:clamp(17px,2.2vw,23px);border-radius:14px}
+  .overlay:not(.intro) .overlay-hint{margin-top:10px;font-size:clamp(11px,1.2vw,14px);color:#426d69}
   .controls-settings{position:absolute}
 }
 @media (pointer:coarse) and (orientation:portrait), (max-width:760px) and (orientation:portrait){
-  .shell{top:var(--game-view-top);left:calc(var(--game-view-left) + var(--game-view-width));width:var(--game-view-height);height:var(--game-view-width);transform-origin:top left;transform:rotate(90deg)}
-  .game-frame{width:min(var(--game-view-height),calc(var(--game-view-width) * 16 / 9))}
+  .shell{display:none}
+  .rotate-prompt{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:calc(env(safe-area-inset-top) + 22px) 22px calc(env(safe-area-inset-bottom) + 22px);background:radial-gradient(circle at 50% 24%,#2e736f,#102d34 70%);color:#fff;text-align:center}
+  .rotate-prompt-card{width:min(100%,440px);padding:30px 20px;border:1px solid #ffffff4f;border-radius:28px;background:#ffffff1a;box-shadow:0 20px 50px #081e2970;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+  .rotate-prompt-icon{font-size:54px;line-height:1.2}
+  .rotate-prompt h2{margin:16px 0 10px;font-size:clamp(24px,6vw,34px);line-height:1.2}
+  .rotate-prompt p{margin:0;font-size:15px;line-height:1.65;color:#e1f4ee}
+  .rotate-prompt a{display:inline-flex;align-items:center;justify-content:center;min-height:42px;margin-top:22px;padding:8px 16px;border:1px solid #ffffff9e;border-radius:12px;background:#ffffff22;color:#fff;font-weight:800;text-decoration:none}
 }
 @media (pointer:coarse) and (max-height:420px), (max-width:760px) and (max-height:420px){
   .hud{min-height:36px;padding-top:2px;padding-bottom:2px}
@@ -63,4 +74,8 @@
   .overlay.intro .overlay-card{bottom:max(8px,env(safe-area-inset-bottom));padding:5px 8px 7px}
   .overlay.intro h2{font-size:clamp(13px,2.7vw,19px)}
   .overlay.intro .play-button{min-height:40px}
+  .overlay:not(.intro) .overlay-card{max-height:calc(100% - 4px);padding:12px 16px}
+  .overlay:not(.intro) h2{margin:6px 0;font-size:clamp(25px,5vw,35px)}
+  .overlay:not(.intro) p{margin:5px auto;font-size:clamp(13px,2vw,16px)}
+  .overlay:not(.intro) .play-button{min-height:48px;margin-top:6px}
 }

@@ -560,28 +560,24 @@
     const root=document.documentElement;
     const width=view?.width||window.innerWidth;
     const height=view?.height||window.innerHeight;
-    let top=view?.offsetTop||0;
-    // In some iPhone Home Screen apps, WebKit removes the status-bar band from
-    // visualViewport.height but still places the fixed page at screen y=0.
-    // Move only the portrait standalone viewport below that inaccessible band.
-    if(window.navigator?.standalone && window.innerWidth<window.innerHeight){
-      const band=(window.screen?.height||height)-height-top;
-      const fullWidth=Math.abs((window.screen?.width||width)-width)<8;
-      if(fullWidth&&band>0&&band<=80)top+=band;
-    }
     root.style.setProperty('--game-view-width',width+'px');
     root.style.setProperty('--game-view-height',height+'px');
     root.style.setProperty('--game-view-left',(view?.offsetLeft||0)+'px');
-    root.style.setProperty('--game-view-top',top+'px');
+    root.style.setProperty('--game-view-top',(view?.offsetTop||0)+'px');
+  }
+  function handleOrientationChange(){
+    syncVisibleViewport();
+    if(window.matchMedia?.('(orientation:portrait) and (pointer:coarse), (orientation:portrait) and (max-width:760px)').matches&&game.mode==='playing')pause();
   }
   syncVisibleViewport();
   window.addEventListener('resize',syncVisibleViewport);
-  window.addEventListener('orientationchange',()=>{syncVisibleViewport();requestAnimationFrame(syncVisibleViewport)});
+  window.addEventListener('orientationchange',()=>{handleOrientationChange();requestAnimationFrame(handleOrientationChange)});
   window.addEventListener('pageshow',syncVisibleViewport);
   document.addEventListener('fullscreenchange',syncVisibleViewport);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncVisibleViewport()});
   window.visualViewport?.addEventListener('resize',syncVisibleViewport);
   window.visualViewport?.addEventListener('scroll',syncVisibleViewport);
+  window.matchMedia?.('(orientation:portrait)')?.addEventListener?.('change',handleOrientationChange);
   const stick=document.getElementById('moveStick');
   let activeStickPointer=null;
   function positionStick(e){

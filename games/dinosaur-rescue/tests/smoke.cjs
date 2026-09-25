@@ -4,7 +4,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const source = fs.readFileSync(path.join(__dirname, '..', 'game.js'), 'utf8')
-  .replace('  game = initialGame();', '  game = initialGame(); muted = true; globalThis.testGame = {get:()=>game, getInput:()=>input, update, nextStage, beginStage, callDad, frame, syncVisibleViewport};');
+  .replace('  game = initialGame();', '  game = initialGame(); muted = true; globalThis.testGame = {get:()=>game, getInput:()=>input, update, nextStage, beginStage, callDad, frame, handleOrientationChange};');
 
 function element() {
   return {textContent:'',innerHTML:'',style:{properties:{},setProperty(name,value){this.properties[name]=value}},classList:{add(){},remove(){}},addEventListener(){},setAttribute(){},removeAttribute(){},focus(){}};
@@ -130,15 +130,13 @@ sandbox.testGame.callDad();
 assert.equal(rexGame.dad.target.kind,'rex','active T-rex can be the nearest target');
 for(let i=0;i<160&&rexGame.tyrannoStunned===0;i++)sandbox.testGame.update(.033);
 assert.ok(rexGame.tyrannoStunned>0,'Dad can stun T-rex for five seconds');
-sandbox.window.navigator={standalone:true};
-sandbox.window.screen={width:393,height:852};
 sandbox.window.innerWidth=393;sandbox.window.innerHeight=806;
 sandbox.window.visualViewport={width:393,height:806,offsetTop:0,offsetLeft:0,addEventListener(){}};
-sandbox.testGame.syncVisibleViewport();
-assert.equal(document.documentElement.style.properties['--game-view-top'],'46px','iPhone Home Screen status band is offset below the system bar');
-sandbox.window.navigator.standalone=false;
-sandbox.testGame.syncVisibleViewport();
-assert.equal(document.documentElement.style.properties['--game-view-top'],'0px','regular browser tabs keep the normal viewport origin');
+sandbox.window.matchMedia=()=>({matches:true});
+rexGame.mode='playing';
+sandbox.testGame.handleOrientationChange();
+assert.equal(rexGame.mode,'paused','rotating a mobile game to portrait pauses play behind the turn-device prompt');
+sandbox.window.matchMedia=undefined;
 setImmediate(()=>{
   assert.equal(nodes.get('playButton').disabled,false,'start enables after graphics decode');
   console.log('Graphics preload, joystick controls, 5 stage transitions, and Dad target selection passed.');
