@@ -12,6 +12,13 @@
     play: document.getElementById('playButton'),
     announcement: document.getElementById('announcement'),
     sound: document.getElementById('soundButton'),
+    settingsOpen: document.getElementById('controlsSettingsButton'),
+    settings: document.getElementById('controlsSettings'),
+    settingsClose: document.getElementById('controlsSettingsClose'),
+    controlSize: document.getElementById('controlsSize'),
+    controlSizeValue: document.getElementById('controlsSizeValue'),
+    controlOpacity: document.getElementById('controlsOpacity'),
+    controlOpacityValue: document.getElementById('controlsOpacityValue'),
     stage: document.getElementById('stagePill'),
     eggs: document.getElementById('eggCount'),
     eggTotal: document.getElementById('eggTotal'),
@@ -49,7 +56,36 @@
   function loadBackground(index){if(!backgroundLoaded.has(index)){backgrounds[index].src=backgroundSources[index];backgroundLoaded.add(index)}}
   loadBackground(0);
   const input = {left:false,right:false,jump:false};
-  let game, lastTime = 0, audioContext, muted = false, announceTimer;
+  const heldKeys={left:false,right:false};
+  let stickDirection=0;
+  function updateMoveInput(){input.left=heldKeys.left||stickDirection<0;input.right=heldKeys.right||stickDirection>0}
+  function resetMoveInput(){heldKeys.left=false;heldKeys.right=false;stickDirection=0;updateMoveInput()}
+  let game, lastTime = 0, audioContext, muted = false, announceTimer, assetsReady=false;
+  const criticalImages=[
+    sprites.juan.image,sprites.sian.image,sprites.juan.actions,sprites.sian.actions,
+    enemyAtlas,worldProps,babyDinoActions,dadActions,dadWalk,groundArt,platformArt,backgrounds[0],
+    document.querySelector('.intro-art')
+  ];
+  function imageReady(image){
+    if(image.complete&&image.naturalWidth>0)return image.decode?image.decode():Promise.resolve();
+    if(image.decode)return image.decode();
+    return new Promise((resolve,reject)=>{
+      image.addEventListener('load',resolve,{once:true});
+      image.addEventListener('error',reject,{once:true});
+    });
+  }
+  function prepareGraphics(){
+    ui.play.disabled=true;
+    ui.play.textContent='그림 불러오는 중…';
+    Promise.all(criticalImages.map(imageReady)).then(()=>{
+      assetsReady=true;
+      ui.play.disabled=false;
+      ui.play.innerHTML='게임 시작 <span aria-hidden="true">→</span>';
+    }).catch(()=>{
+      ui.play.textContent='이미지 로딩 실패 · 새로고침';
+      ui.text.textContent='네트워크를 확인하고 페이지를 새로고침해 주세요.';
+    });
+  }
 
   function initialGame(stageIndex=0,score=0,rescuedBefore=0,mode='ready') {
     const stage=STAGES[stageIndex];
@@ -101,16 +137,27 @@
   }
   function beginStage(index=0,score=0,rescuedBefore=0){
     loadBackground(index);
-    input.left=false;input.right=false;
+    if(index+1<STAGES.length)loadBackground(index+1);
+    resetMoveInput();
     game=initialGame(index,score,rescuedBefore,'playing');hideOverlay();updateHud();
     tone(523,.1);setTimeout(()=>tone(784,.15),100);
     announce((index+1)+'단계 · '+game.stage.name);
   }
   function start(){beginStage(0,0,0)}
   function retryStage(){beginStage(game.stageIndex,game.stageStartScore,game.rescuedBefore)}
-  function nextStage(){beginStage(game.stageIndex+1,game.score,game.rescuedBefore+game.collected)}
+  function nextStage(){
+    const index=game.stageIndex+1,score=game.score,rescued=game.rescuedBefore+game.collected;
+    const image=backgrounds[index];
+    if(image.complete&&image.naturalWidth>0){beginStage(index,score,rescued);return}
+    ui.play.disabled=true;
+    ui.play.textContent='다음 배경 불러오는 중…';
+    imageReady(image).then(()=>{ui.play.disabled=false;beginStage(index,score,rescued)}).catch(()=>{
+      ui.play.textContent='배경 로딩 실패 · 새로고침';
+      ui.text.textContent='네트워크를 확인하고 페이지를 새로고침해 주세요.';
+    });
+  }
   function clearStage(){
-    input.left=false;input.right=false;
+    resetMoveInput();
     game.score+=game.hearts*100;updateHud();tone(659,.16);setTimeout(()=>tone(880,.22),140);
     if(game.stageIndex===STAGES.length-1){end(true);return}
     loadBackground(game.stageIndex+1);
@@ -118,7 +165,7 @@
     showOverlay('스테이지 완료 · '+(game.stageIndex+1)+'/5',game.stage.name+'<br>통과!','공룡알 '+game.collected+'개 구조 · 다음 지역은 '+STAGES[game.stageIndex+1].name+'입니다.','다음 스테이지','하트가 다시 5개로 채워집니다.');
   }
   function end(won){
-    input.left=false;input.right=false;
+    resetMoveInput();
     game.mode=won?'won':'lost';
     if(won)showOverlay('5개 스테이지 완료!','공룡알 구조<br>대성공!','총 '+(game.rescuedBefore+game.collected)+'개의 공룡알 · 최종 점수 '+game.score.toLocaleString('ko-KR')+'점','처음부터 다시','주안이와 시안이가 모든 둥지를 지켰어요!');
     else{tone(220,.22,'triangle');showOverlay('다시 도전!','이번 스테이지를<br>다시 해봐요!','현재 '+(game.stageIndex+1)+'단계 · '+game.stage.name+'에서 공룡알 '+game.collected+'개를 구했어요.','이 스테이지 재도전','시작할 때의 점수와 하트 5개로 돌아갑니다.')}
@@ -504,8 +551,80 @@
   function eggDraw(e){egg(e.x-game.camera,e.y,Math.sin(game.t*4+e.x)*3)}
   function frame(now){
     const dt=Math.min(.033,(now-lastTime)/1000||0);lastTime=now;
-    update(dt);draw();requestAnimationFrame(frame);
+    if(assetsReady){update(dt);draw()}
+    requestAnimationFrame(frame);
   }
+  const gameSurface=document.querySelector('.shell');
+  function syncVisibleViewport(){
+    const view=window.visualViewport;
+    const root=document.documentElement;
+    root.style.setProperty('--game-view-width',(view?.width||window.innerWidth)+'px');
+    root.style.setProperty('--game-view-height',(view?.height||window.innerHeight)+'px');
+    root.style.setProperty('--game-view-left',(view?.offsetLeft||0)+'px');
+    root.style.setProperty('--game-view-top',(view?.offsetTop||0)+'px');
+  }
+  syncVisibleViewport();
+  window.addEventListener('resize',syncVisibleViewport);
+  window.addEventListener('orientationchange',syncVisibleViewport);
+  document.addEventListener('fullscreenchange',syncVisibleViewport);
+  window.visualViewport?.addEventListener('resize',syncVisibleViewport);
+  window.visualViewport?.addEventListener('scroll',syncVisibleViewport);
+  const stick=document.getElementById('moveStick');
+  let activeStickPointer=null;
+  function positionStick(e){
+    const bounds=stick.getBoundingClientRect();
+    const portrait=window.matchMedia?.('(orientation:portrait)').matches;
+    const offset=portrait?e.clientY-(bounds.top+bounds.height/2):e.clientX-(bounds.left+bounds.width/2);
+    const travel=Math.max(1,bounds.width/2-parseFloat(getComputedStyle(stick).getPropertyValue('--control-stick-knob')||'48')/2-3);
+    const x=Math.max(-travel,Math.min(travel,offset));
+    stick.style.setProperty('--stick-x',x+'px');
+    stickDirection=Math.abs(x)<travel*.22?0:Math.sign(x);
+    updateMoveInput();
+  }
+  function releaseStick(e){
+    if(activeStickPointer!==null&&e?.pointerId!==undefined&&e.pointerId!==activeStickPointer)return;
+    activeStickPointer=null;stickDirection=0;updateMoveInput();
+    stick.classList.remove('active');
+    stick.style.setProperty('--stick-x','0px');
+  }
+  stick.addEventListener('pointerdown',e=>{
+    e.preventDefault();
+    if(activeStickPointer!==null)return;
+    activeStickPointer=e.pointerId;
+    stick.setPointerCapture(e.pointerId);
+    stick.classList.add('active');
+    positionStick(e);
+  });
+  stick.addEventListener('pointermove',e=>{if(activeStickPointer===e.pointerId)positionStick(e)});
+  for(const eventName of ['pointerup','pointercancel','lostpointercapture'])stick.addEventListener(eventName,releaseStick);
+  const SETTINGS_KEY='dinosaur-rescue-controls-v1';
+  function applyControlSettings(size,opacity){
+    size=Math.max(80,Math.min(150,Number(size)||115));
+    opacity=Math.max(35,Math.min(100,Number(opacity)||75));
+    ui.controlSize.value=String(size);ui.controlOpacity.value=String(opacity);
+    ui.controlSizeValue.textContent=size+'%';ui.controlOpacityValue.textContent=opacity+'%';
+    const root=document.documentElement.style;
+    root.setProperty('--control-button-width',Math.round(72*size/100)+'px');
+    root.setProperty('--control-button-height',Math.round(52*size/100)+'px');
+    root.setProperty('--control-stick-size',Math.round(76*size/100)+'px');
+    root.setProperty('--control-stick-knob',Math.round(42*size/100)+'px');
+    root.setProperty('--control-opacity',String(opacity/100));
+    try{localStorage.setItem(SETTINGS_KEY,JSON.stringify({size,opacity}))}catch{}
+  }
+  let savedSettings={};
+  try{savedSettings=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}')||{}}catch{}
+  applyControlSettings(savedSettings.size??115,savedSettings.opacity??75);
+  ui.controlSize.addEventListener('input',()=>applyControlSettings(ui.controlSize.value,ui.controlOpacity.value));
+  ui.controlOpacity.addEventListener('input',()=>applyControlSettings(ui.controlSize.value,ui.controlOpacity.value));
+  ui.settingsOpen.addEventListener('click',()=>{
+    if(game.mode==='playing')pause();
+    releaseStick();
+    ui.settings.hidden=false;
+    ui.settingsClose.focus();
+  });
+  function closeSettings(){ui.settings.hidden=true;ui.settingsOpen.focus()}
+  ui.settingsClose.addEventListener('click',closeSettings);
+  ui.settings.addEventListener('click',e=>{if(e.target===ui.settings)closeSettings()});
   async function requestMobileLandscape(){
     if(!window.matchMedia?.('(pointer: coarse), (max-width: 760px)').matches)return;
     try{
@@ -517,6 +636,7 @@
     catch{/* CSS keeps the game in landscape when the browser refuses orientation lock. */}
   }
   ui.play.addEventListener('click',()=>{
+    if(ui.play.disabled)return;
     void requestMobileLandscape();
     if(game.mode==='paused')pause();
     else if(game.mode==='stageclear')nextStage();
@@ -525,35 +645,39 @@
   });
   ui.sound.addEventListener('click',()=>{muted=!muted;ui.sound.textContent=muted?'🔇':'🔊';ui.sound.setAttribute('aria-label',muted?'소리 켜기':'소리 끄기');ui.sound.title=muted?'소리 켜기':'소리 끄기'});
   document.addEventListener('keydown',e=>{
+    if(!ui.settings.hidden){
+      if(e.code==='Escape'){e.preventDefault();closeSettings()}
+      return;
+    }
     if(['ArrowLeft','ArrowRight','ArrowUp','Space'].includes(e.code))e.preventDefault();
     if(e.repeat&&['KeyC','KeyP','KeyV'].includes(e.code))return;
-    if(e.code==='ArrowLeft'||e.code==='KeyA')input.left=true;
-    if(e.code==='ArrowRight'||e.code==='KeyD')input.right=true;
+    if(e.code==='ArrowLeft'||e.code==='KeyA'){heldKeys.left=true;updateMoveInput()}
+    if(e.code==='ArrowRight'||e.code==='KeyD'){heldKeys.right=true;updateMoveInput()}
     if((e.code==='Space'||e.code==='ArrowUp'||e.code==='KeyW')&&!e.repeat)jump();
     if(e.code==='KeyC')switchHero();
     if(e.code==='KeyV')callDad();
     if(e.code==='KeyP')pause();
-    if(e.code==='Enter'&&game.mode==='ready')start();
+    if(e.code==='Enter'&&game.mode==='ready'&&assetsReady)start();
     else if(e.code==='Enter'&&game.mode==='won')start();
     else if(e.code==='Enter'&&game.mode==='lost')retryStage();
     else if(e.code==='Enter'&&game.mode==='stageclear')nextStage();
   });
-  document.addEventListener('keyup',e=>{if(e.code==='ArrowLeft'||e.code==='KeyA')input.left=false;if(e.code==='ArrowRight'||e.code==='KeyD')input.right=false});
-  window.addEventListener('blur',()=>{input.left=false;input.right=false;if(game.mode==='playing')pause()});
+  document.addEventListener('keyup',e=>{if(e.code==='ArrowLeft'||e.code==='KeyA')heldKeys.left=false;if(e.code==='ArrowRight'||e.code==='KeyD')heldKeys.right=false;updateMoveInput()});
+  window.addEventListener('blur',()=>{resetMoveInput();releaseStick();if(game.mode==='playing')pause()});
   document.addEventListener('visibilitychange',()=>{if(document.hidden&&game.mode==='playing')pause()});
-  const gameSurface=document.querySelector('.shell');
   gameSurface.addEventListener('touchstart',e=>{
+    if(e.target?.closest?.('.controls-settings'))return;
     if(e.touches.length>1)e.preventDefault();
   },{capture:true,passive:false});
-  gameSurface.addEventListener('touchmove',e=>e.preventDefault(),{capture:true,passive:false});
+  gameSurface.addEventListener('touchmove',e=>{if(!e.target?.closest?.('.controls-settings'))e.preventDefault()},{capture:true,passive:false});
   for(const eventName of ['gesturestart','gesturechange']){
     gameSurface.addEventListener(eventName,e=>e.preventDefault(),{capture:true,passive:false});
   }
   for(const button of document.querySelectorAll('[data-control]')){
     const control=button.dataset.control;
-    button.addEventListener('pointerdown',e=>{e.preventDefault();button.setPointerCapture(e.pointerId);button.classList.add('pressed');if(control==='left'||control==='right')input[control]=true;else if(control==='jump')jump();else if(control==='dad')callDad();else switchHero()});
-    const release=()=>{button.classList.remove('pressed');if(control==='left'||control==='right')input[control]=false};
+    button.addEventListener('pointerdown',e=>{e.preventDefault();button.setPointerCapture(e.pointerId);button.classList.add('pressed');if(control==='jump')jump();else if(control==='dad')callDad();else switchHero()});
+    const release=()=>button.classList.remove('pressed');
     button.addEventListener('pointerup',release);button.addEventListener('pointercancel',release);button.addEventListener('lostpointercapture',release);
   }
-  updateHud();requestAnimationFrame(frame);
+  prepareGraphics();updateHud();requestAnimationFrame(frame);
 })();

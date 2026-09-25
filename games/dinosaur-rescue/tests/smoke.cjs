@@ -4,10 +4,10 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const source = fs.readFileSync(path.join(__dirname, '..', 'game.js'), 'utf8')
-  .replace('  game = initialGame();', '  game = initialGame(); muted = true; globalThis.testGame = {get:()=>game, getInput:()=>input, update, nextStage, beginStage, callDad};');
+  .replace('  game = initialGame();', '  game = initialGame(); muted = true; globalThis.testGame = {get:()=>game, getInput:()=>input, update, nextStage, beginStage, callDad, frame};');
 
 function element() {
-  return {textContent:'',innerHTML:'',style:{},classList:{add(){},remove(){}},addEventListener(){},setAttribute(){},removeAttribute(){}};
+  return {textContent:'',innerHTML:'',style:{setProperty(){}},classList:{add(){},remove(){}},addEventListener(){},setAttribute(){},removeAttribute(){},focus(){}};
 }
 const nodes = new Map();
 const gameSurfaceEvents = new Map();
@@ -21,20 +21,24 @@ function control(name) {
   button.setPointerCapture = () => {};
   return button;
 }
-const leftControl = control('left');
 const jumpControl = control('jump');
+const stick = control('move');
+stick.getBoundingClientRect = () => ({left:0,top:0,width:88,height:88});
 const document = {
+  documentElement:element(),
   getElementById(id) {
-    if (!nodes.has(id)) nodes.set(id, id === 'game' ? {getContext(){return {}}} : element());
+    if (!nodes.has(id)) nodes.set(id, id === 'game' ? {getContext(){return {}}} : id === 'moveStick' ? stick : element());
     return nodes.get(id);
   },
-  querySelector(selector){return selector === '.shell' ? gameSurface : null},
-  querySelectorAll(selector){return selector === '[data-control]' ? [leftControl,jumpControl] : []},
+  querySelector(selector){return selector === '.shell' ? gameSurface : selector === '.intro-art' ? new Image() : null},
+  querySelectorAll(selector){return selector === '[data-control]' ? [jumpControl] : []},
   addEventListener(){}
 };
-class Image { set src(value){this._src=value;this.complete=false;this.naturalWidth=0} }
-const sandbox = {document,window:{addEventListener(){}},Image,setTimeout(){},clearTimeout(){},requestAnimationFrame(){},console};
+class Image { set src(value){this._src=value;this.complete=true;this.naturalWidth=100} decode(){return Promise.resolve()} }
+const sandbox = {document,window:{addEventListener(){},innerWidth:960,innerHeight:540},Image,setTimeout(){},clearTimeout(){},requestAnimationFrame(){},getComputedStyle(){return {getPropertyValue(){return '48px'}}},console};
 vm.runInNewContext(source,sandbox,{filename:'game.js'});
+assert.equal(nodes.get('playButton').disabled,true,'start is unavailable until all graphics decode');
+sandbox.testGame.frame(16); // An undecoded sprite must never be replaced by the old canvas fallback.
 for (const name of ['touchstart','touchmove','gesturestart','gesturechange']) {
   assert.equal(gameSurfaceEvents.get(name)?.options?.passive, false, `${name} must be cancelable`);
 }
@@ -51,12 +55,21 @@ const firstStage=sandbox.testGame.get();
 assert.equal(firstStage.hearts,5);
 firstStage.mode='playing';
 firstStage.player.onGround=true;
-leftControl.events.get('pointerdown')({preventDefault(){},pointerId:1});
+stick.events.get('pointerdown')({preventDefault(){},pointerId:1,clientX:10,clientY:44});
 jumpControl.events.get('pointerdown')({preventDefault(){},pointerId:2});
 assert.equal(sandbox.testGame.getInput().left,true,'move stays pressed during jump');
 assert.ok(firstStage.player.vy<0,'jump works with move held');
-leftControl.events.get('pointerup')();
+stick.events.get('pointerup')({pointerId:1});
 assert.equal(sandbox.testGame.getInput().left,false,'move releases normally');
+stick.events.get('pointerdown')({preventDefault(){},pointerId:3,clientX:78,clientY:44});
+assert.equal(sandbox.testGame.getInput().right,true,'joystick moves right when dragged right');
+stick.events.get('pointerup')({pointerId:3});
+assert.equal(sandbox.testGame.getInput().right,false,'right movement releases normally');
+sandbox.window.matchMedia=()=>({matches:true});
+stick.events.get('pointerdown')({preventDefault(){},pointerId:4,clientX:44,clientY:10});
+assert.equal(sandbox.testGame.getInput().left,true,'rotated portrait joystick follows its visual left side');
+stick.events.get('pointerup')({pointerId:4});
+sandbox.window.matchMedia=undefined;
 const petStartY=firstStage.pet.y;
 const petStartX=firstStage.pet.x;
 firstStage.player.x+=80;
@@ -117,4 +130,7 @@ sandbox.testGame.callDad();
 assert.equal(rexGame.dad.target.kind,'rex','active T-rex can be the nearest target');
 for(let i=0;i<160&&rexGame.tyrannoStunned===0;i++)sandbox.testGame.update(.033);
 assert.ok(rexGame.tyrannoStunned>0,'Dad can stun T-rex for five seconds');
-console.log('Multitouch controls, 5 stage transitions, and Dad target selection passed.');
+setImmediate(()=>{
+  assert.equal(nodes.get('playButton').disabled,false,'start enables after graphics decode');
+  console.log('Graphics preload, joystick controls, 5 stage transitions, and Dad target selection passed.');
+});

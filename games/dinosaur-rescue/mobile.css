@@ -1,13 +1,25 @@
+:root{--game-view-width:100vw;--game-view-height:100dvh;--game-view-left:0px;--game-view-top:0px;--control-button-width:82px;--control-button-height:60px;--control-stick-size:88px;--control-stick-knob:48px;--control-opacity:.75}
+.controls-settings-open{display:none}
+.controls-settings[hidden]{display:none!important}
+.controls-settings{position:fixed;z-index:30;inset:0;display:grid;place-items:center;padding:20px;background:#062d39c9;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.controls-settings-card{width:min(92%,360px);padding:24px;border:1px solid #ffffffa8;border-radius:22px;background:#f8fff5;color:#173d43;box-shadow:0 20px 55px #071d2680}
+.controls-settings h2{margin:0 0 17px;font-size:22px}
+.controls-settings label{display:flex;justify-content:space-between;gap:16px;margin:15px 0 7px;font-weight:900}
+.controls-settings output{color:#287d77}
+.controls-settings input[type=range]{display:block;width:100%;height:32px;accent-color:#2d9c8c;touch-action:auto}
+.settings-close{display:block;min-width:100px;min-height:42px;margin:22px 0 0 auto;padding:8px 20px;border:0;border-radius:12px;background:#ffd16a;color:#173d43;font:900 16px "Malgun Gothic",system-ui,sans-serif}
+.play-button:disabled{opacity:.82;cursor:progress;box-shadow:0 3px 0 #b57331;transform:none}
 @media (pointer:coarse), (max-width:760px){
   html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;touch-action:none}
   body{background:#102d34}
-  .shell{position:fixed;inset:0;width:100vw;height:100dvh;max-width:none;margin:0;padding:0;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#102d34;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+  .shell{position:fixed;top:var(--game-view-top);left:var(--game-view-left);width:var(--game-view-width);height:var(--game-view-height);max-width:none;margin:0;padding:0;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#102d34;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
   .shell *{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
-  .topbar{position:absolute;z-index:12;top:7px;left:8px;right:8px;margin:0;pointer-events:none}
+  .topbar{position:absolute;z-index:12;top:7px;left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));margin:0;pointer-events:none}
   .topbar .brand{display:none}
   .topbar .collection-back{pointer-events:auto;min-width:0;height:33px;padding:0 9px;border:1px solid #ffffff9c;border-radius:11px;background:#e5fff150;color:#fff;backdrop-filter:blur(12px);font-size:11px;text-shadow:0 1px 3px #103b45aa}
   .topbar .icon-button{pointer-events:auto;width:33px;height:33px;padding:0;border:1px solid #ffffff9c;border-radius:11px;background:#e5fff150;backdrop-filter:blur(12px);box-shadow:0 3px 12px #092c3955;font-size:17px}
-  .game-frame{position:relative;flex:none;width:min(100vw,calc(100dvh * 16 / 9));aspect-ratio:16/9;overflow:hidden;border:0;border-radius:0;box-shadow:none;background:#102d34}
+  .topbar .controls-settings-open{display:inline-grid;place-items:center;margin-left:auto;margin-right:8px}
+  .game-frame{position:relative;flex:none;width:min(var(--game-view-width),calc(var(--game-view-height) * 16 / 9));aspect-ratio:16/9;overflow:hidden;border:0;border-radius:0;box-shadow:none;background:#102d34}
   .game-stage{width:100%;height:100%;aspect-ratio:auto;overflow:hidden}
   .below-game{display:none}
   .hud{position:absolute;z-index:8;top:0;left:0;right:0;min-height:42px;justify-content:space-around;gap:5px;margin:0;padding:4px 47px 5px 86px;border:0;border-radius:0 0 12px 12px;background:linear-gradient(180deg,#0a3039d9,#0a3039a8);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 3px 12px #092c3955;color:#fff}
@@ -20,13 +32,17 @@
   .game-frame:has(.overlay:not(.hidden)) .hud{display:none}
   .stage-pill{z-index:5;top:49px;right:8px;padding:3px 7px;border-radius:8px;font-size:9px;opacity:.82}
   .game-stage:has(.overlay:not(.hidden)) .stage-pill{display:none}
-  .touch-controls{position:absolute;z-index:9;left:max(10px,env(safe-area-inset-left));right:max(10px,env(safe-area-inset-right));bottom:max(9px,env(safe-area-inset-bottom));display:flex;align-items:end;justify-content:space-between;gap:24px;margin:0;padding:0;pointer-events:none;touch-action:none;user-select:none}
+  .touch-controls{position:absolute;z-index:9;left:max(10px,env(safe-area-inset-left));right:max(10px,env(safe-area-inset-right));bottom:max(9px,env(safe-area-inset-bottom));display:flex;align-items:end;justify-content:space-between;gap:clamp(10px,3vw,30px);margin:0;padding:0;opacity:var(--control-opacity);pointer-events:none;touch-action:none;user-select:none}
   .touch-controls>div{display:flex;align-items:end;gap:8px;pointer-events:auto}
-  .touch-controls button,.touch-controls [data-control="dad"],.touch-controls [data-control="switch"],.touch-controls [data-control="jump"]{min-width:52px;height:52px;padding:0 8px;border:1px solid #ffffffa8;border-radius:16px;background:#e5fff142;color:#fff;font:900 15px "Malgun Gothic",system-ui,sans-serif;text-shadow:0 1px 3px #103b45aa;box-shadow:0 4px 16px #06293655,inset 0 1px 0 #ffffff7a;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);touch-action:none}
+  .touch-controls button{width:var(--control-button-width);min-width:0;height:var(--control-button-height);padding:0 7px;border:1px solid #ffffffa8;border-radius:16px;background:#e5fff142;color:#fff;font:900 15px "Malgun Gothic",system-ui,sans-serif;text-shadow:0 1px 3px #103b45aa;box-shadow:0 4px 16px #06293655,inset 0 1px 0 #ffffff7a;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);touch-action:none}
   .touch-controls [data-control="jump"]{background:#ffd1775c}
   .touch-controls [data-control="switch"]{background:#67cbd563}
   .touch-controls [data-control="dad"]{background:#d9a66b63}
-  .touch-controls button:active,.touch-controls button.pressed{background:#fff5c088;transform:scale(.95);box-shadow:0 2px 9px #06293666}
+  .touch-controls button:active,.touch-controls button.pressed{background:#fff5c088;transform:scale(.96);box-shadow:0 2px 9px #06293666}
+  .move-stick{position:relative;display:grid;place-items:center;flex:none;width:var(--control-stick-size);height:var(--control-stick-size);border:2px solid #ffffffb2;border-radius:50%;background:#e5fff137;box-shadow:0 4px 16px #06293655,inset 0 1px 8px #ffffff54;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);touch-action:none;outline-offset:4px}
+  .move-stick-arrows{position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-size:12px;text-shadow:0 1px 3px #103b45aa;pointer-events:none}
+  .move-stick-knob{width:var(--control-stick-knob);height:var(--control-stick-knob);border:1px solid #ffffffd8;border-radius:50%;background:linear-gradient(135deg,#ffffffc4,#bdebd69c);box-shadow:0 3px 9px #0629368a,inset 0 1px 2px #fff;transform:translateX(var(--stick-x,0px));pointer-events:none;transition:transform .09s ease-out}
+  .move-stick.active .move-stick-knob{transition:none;background:linear-gradient(135deg,#fff3c9,#bbdcb1)}
   .overlay:not(.hidden) ~ .touch-controls{display:none}
   .overlay.intro .overlay-card{right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));width:min(37%,300px);padding:8px 10px 10px}
   .overlay.intro h2{font-size:clamp(16px,3vw,25px)}
@@ -34,13 +50,13 @@
   .overlay.intro .play-button span{margin-left:7px}
   .overlay:not(.intro){display:flex;align-items:flex-start;justify-content:center;padding:9px}
   .overlay:not(.intro) .overlay-card{max-height:calc(100% - 18px);margin:0}
+  .controls-settings{position:absolute}
 }
-@media (pointer:coarse) and (orientation:portrait){
-  .shell{inset:auto;top:0;left:100vw;width:100dvh;height:100vw;transform-origin:top left;transform:rotate(90deg)}
-  .game-frame{width:min(100dvh,calc(100vw * 16 / 9))}
+@media (pointer:coarse) and (orientation:portrait), (max-width:760px) and (orientation:portrait){
+  .shell{top:var(--game-view-top);left:calc(var(--game-view-left) + var(--game-view-width));width:var(--game-view-height);height:var(--game-view-width);transform-origin:top left;transform:rotate(90deg)}
+  .game-frame{width:min(var(--game-view-height),calc(var(--game-view-width) * 16 / 9))}
 }
 @media (pointer:coarse) and (max-height:420px), (max-width:760px) and (max-height:420px){
-  .touch-controls button,.touch-controls [data-control="dad"],.touch-controls [data-control="switch"],.touch-controls [data-control="jump"]{min-width:45px;height:45px;border-radius:14px;font-size:13px}
   .hud{min-height:36px;padding-top:2px;padding-bottom:2px}
   .hud-item strong{font-size:12px}
   .stage-pill{top:40px}

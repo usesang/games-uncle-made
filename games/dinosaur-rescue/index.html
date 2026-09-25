@@ -24,6 +24,7 @@
       <a class="collection-back" href="../../" aria-label="게임 모음집으로 돌아가기">← 모음집</a>
       <div class="brand"><span class="brand-icon">🦖</span><div><span class="eyebrow">DINOSAUR RESCUE</span><h1>주안이와 시안이 <span>공룡알 대소동</span></h1></div></div>
       <button class="install-open game-install" type="button" data-install-trigger hidden>앱 설치</button>
+      <button id="controlsSettingsButton" class="icon-button controls-settings-open" type="button" aria-label="조작 버튼 설정" title="조작 버튼 설정">⚙️</button>
       <button id="soundButton" class="icon-button" type="button" aria-label="소리 끄기" title="소리 끄기">🔊</button>
     </header>
 
@@ -37,14 +38,14 @@
             <span id="overlayKicker" class="overlay-kicker">DINOSAUR RESCUE</span>
             <h2 id="overlayTitle">공룡알을<br>구하러 가자!</h2>
             <p id="overlayText">5개 지역을 탐험하세요. 두 친구를 교대하며 공룡알을 모으고, 공룡들을 피해 둥지까지 가요.</p>
-            <button id="playButton" class="play-button" type="button">게임 시작 <span aria-hidden="true">→</span></button>
+            <button id="playButton" class="play-button" type="button" disabled>그림 불러오는 중…</button>
             <div id="overlayHint" class="overlay-hint">이동 ← → · 점프 Space · 교대 C · 아빠 V</div>
           </div>
           <a class="game-copyright" href="mailto:usesang+code@gmail.com" aria-label="usesang에게 이메일 보내기">©usesang</a>
         </div>
         <div id="announcement" class="announcement" aria-live="polite"></div>
         <nav class="touch-controls" aria-label="터치 게임 조작">
-          <div class="move-buttons"><button type="button" data-control="left" aria-label="왼쪽 이동">◀</button><button type="button" data-control="right" aria-label="오른쪽 이동">▶</button></div>
+          <div class="move-buttons"><div id="moveStick" class="move-stick" role="group" tabindex="0" aria-label="좌우 이동 조이스틱"><span class="move-stick-arrows" aria-hidden="true">◀　▶</span><span class="move-stick-knob" aria-hidden="true"></span></div></div>
           <div class="action-buttons"><button type="button" data-control="dad">아빠</button><button type="button" data-control="switch">교대</button><button type="button" data-control="jump">점프</button></div>
         </nav>
       </div>
@@ -62,7 +63,16 @@
       <div class="character-help"><span class="character-badge dad">아</span><p><strong>아빠</strong> V를 누르면 달려와 공룡을 꿀밤 때려요.</p></div>
       <div class="keyboard-help">← → 이동 <span>·</span> Space / ↑ 점프 <span>·</span> C 교대 <span>·</span> V 아빠 <span>·</span> P 일시정지</div>
     </div>
-
+    <section id="controlsSettings" class="controls-settings" role="dialog" aria-modal="true" aria-labelledby="controlsSettingsTitle" hidden>
+      <div class="controls-settings-card">
+        <h2 id="controlsSettingsTitle">조작 버튼 설정</h2>
+        <label for="controlsSize">버튼 크기 <output id="controlsSizeValue">115%</output></label>
+        <input id="controlsSize" type="range" min="80" max="150" step="5" value="115">
+        <label for="controlsOpacity">버튼 불투명도 <output id="controlsOpacityValue">75%</output></label>
+        <input id="controlsOpacity" type="range" min="35" max="100" step="5" value="75">
+        <button id="controlsSettingsClose" class="settings-close" type="button">완료</button>
+      </div>
+    </section>
   </main>
   <script src="game.js" defer></script>
   <script src="../../install.js" defer></script>
