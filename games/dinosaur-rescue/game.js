@@ -558,15 +558,28 @@
   function syncVisibleViewport(){
     const view=window.visualViewport;
     const root=document.documentElement;
-    root.style.setProperty('--game-view-width',(view?.width||window.innerWidth)+'px');
-    root.style.setProperty('--game-view-height',(view?.height||window.innerHeight)+'px');
+    const width=view?.width||window.innerWidth;
+    const height=view?.height||window.innerHeight;
+    let top=view?.offsetTop||0;
+    // In some iPhone Home Screen apps, WebKit removes the status-bar band from
+    // visualViewport.height but still places the fixed page at screen y=0.
+    // Move only the portrait standalone viewport below that inaccessible band.
+    if(window.navigator?.standalone && window.innerWidth<window.innerHeight){
+      const band=(window.screen?.height||height)-height-top;
+      const fullWidth=Math.abs((window.screen?.width||width)-width)<8;
+      if(fullWidth&&band>0&&band<=80)top+=band;
+    }
+    root.style.setProperty('--game-view-width',width+'px');
+    root.style.setProperty('--game-view-height',height+'px');
     root.style.setProperty('--game-view-left',(view?.offsetLeft||0)+'px');
-    root.style.setProperty('--game-view-top',(view?.offsetTop||0)+'px');
+    root.style.setProperty('--game-view-top',top+'px');
   }
   syncVisibleViewport();
   window.addEventListener('resize',syncVisibleViewport);
-  window.addEventListener('orientationchange',syncVisibleViewport);
+  window.addEventListener('orientationchange',()=>{syncVisibleViewport();requestAnimationFrame(syncVisibleViewport)});
+  window.addEventListener('pageshow',syncVisibleViewport);
   document.addEventListener('fullscreenchange',syncVisibleViewport);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncVisibleViewport()});
   window.visualViewport?.addEventListener('resize',syncVisibleViewport);
   window.visualViewport?.addEventListener('scroll',syncVisibleViewport);
   const stick=document.getElementById('moveStick');
