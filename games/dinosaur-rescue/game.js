@@ -64,7 +64,7 @@
   const heldKeys={left:false,right:false};
   let stickDirection=0;
   function updateMoveInput(){input.left=heldKeys.left||stickDirection<0;input.right=heldKeys.right||stickDirection>0}
-  function resetMoveInput(){heldKeys.left=false;heldKeys.right=false;stickDirection=0;updateMoveInput()}
+  function resetMoveInput(){heldKeys.left=false;heldKeys.right=false;releaseStick()}
   let game, lastTime = 0, audioContext, muted = false, announceTimer, assetsReady=false;
   function getAudioContext(){
     audioContext ||= new (window.AudioContext||window.webkitAudioContext)();
@@ -599,6 +599,7 @@
     }
   }
   function handleOrientationChange(){
+    resetMoveInput();
     syncVisibleViewport();
     if(window.matchMedia?.('(orientation:portrait) and (pointer:coarse), (orientation:portrait) and (max-width:760px)').matches&&game.mode==='playing')pause();
   }
@@ -625,20 +626,35 @@
   }
   function releaseStick(e){
     if(activeStickPointer!==null&&e?.pointerId!==undefined&&e.pointerId!==activeStickPointer)return;
+    const pointer=activeStickPointer;
     activeStickPointer=null;stickDirection=0;updateMoveInput();
     stick.classList.remove('active');
     stick.style.setProperty('--stick-x','0px');
+    if(pointer!==null){
+      try{if(stick.hasPointerCapture(pointer))stick.releasePointerCapture(pointer)}catch{}
+    }
   }
   stick.addEventListener('pointerdown',e=>{
     e.preventDefault();
-    if(activeStickPointer!==null)return;
+    if(activeStickPointer!==null||game.mode!=='playing')return;
     activeStickPointer=e.pointerId;
-    stick.setPointerCapture(e.pointerId);
+    try{stick.setPointerCapture(e.pointerId)}catch{}
     stick.classList.add('active');
     positionStick(e);
   });
-  stick.addEventListener('pointermove',e=>{if(activeStickPointer===e.pointerId)positionStick(e)});
+  stick.addEventListener('pointermove',e=>{
+    if(activeStickPointer!==e.pointerId)return;
+    if(e.pointerType==='mouse'&&e.buttons===0)releaseStick(e);
+    else positionStick(e);
+  });
   for(const eventName of ['pointerup','pointercancel','lostpointercapture'])stick.addEventListener(eventName,releaseStick);
+  for(const eventName of ['pointerup','pointercancel'])window.addEventListener(eventName,releaseStick,true);
+  for(const eventName of ['touchend','touchcancel']){
+    window.addEventListener(eventName,e=>{
+      if(Array.from(e.changedTouches).some(touch=>stick.contains(touch.target)))releaseStick();
+    },{capture:true,passive:true});
+  }
+  window.addEventListener('pagehide',resetMoveInput);
   const SETTINGS_KEY='dinosaur-rescue-controls-v1';
   function applyControlSettings(size,opacity){
     size=Math.max(80,Math.min(150,Number(size)||115));
@@ -708,8 +724,8 @@
     else if(e.code==='Enter'&&game.mode==='stageclear')nextStage();
   });
   document.addEventListener('keyup',e=>{if(e.code==='ArrowLeft'||e.code==='KeyA')heldKeys.left=false;if(e.code==='ArrowRight'||e.code==='KeyD')heldKeys.right=false;updateMoveInput()});
-  window.addEventListener('blur',()=>{resetMoveInput();releaseStick();if(game.mode==='playing')pause()});
-  document.addEventListener('visibilitychange',()=>{if(document.hidden&&game.mode==='playing')pause()});
+  window.addEventListener('blur',()=>{resetMoveInput();if(game.mode==='playing')pause()});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){resetMoveInput();if(game.mode==='playing')pause()}});
   gameSurface.addEventListener('touchstart',e=>{
     if(e.target?.closest?.('.controls-settings'))return;
     if(e.touches.length>1)e.preventDefault();
