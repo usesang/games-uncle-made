@@ -66,6 +66,13 @@
   function updateMoveInput(){input.left=heldKeys.left||stickDirection<0;input.right=heldKeys.right||stickDirection>0}
   function resetMoveInput(){heldKeys.left=false;heldKeys.right=false;stickDirection=0;updateMoveInput()}
   let game, lastTime = 0, audioContext, muted = false, announceTimer, assetsReady=false;
+  function getAudioContext(){
+    audioContext ||= new (window.AudioContext||window.webkitAudioContext)();
+    return audioContext;
+  }
+  const music=window.createDinosaurRescueMusic?.(getAudioContext) || {
+    preload:()=>Promise.resolve(null),start(){},pause(){},resume(){},stop(){},setMuted(){}
+  };
   const criticalImages=[
     sprites.juan.image,sprites.sian.image,sprites.juan.actions,sprites.sian.actions,
     enemyAtlas,worldProps,babyDinoActions,dadActions,dadWalk,groundArt,platformArt,backgrounds[0],
@@ -134,7 +141,7 @@
   function tone(freq=440,duration=.08,type='sine',volume=.07){
     if(muted) return;
     try{
-      audioContext ||= new (window.AudioContext||window.webkitAudioContext)();
+      getAudioContext();
       if(audioContext.state==='suspended') audioContext.resume();
       const osc=audioContext.createOscillator(),gain=audioContext.createGain();
       osc.type=type;osc.frequency.setValueAtTime(freq,audioContext.currentTime);
@@ -148,6 +155,7 @@
     if(index+1<STAGES.length)loadBackground(index+1);
     resetMoveInput();
     game=initialGame(index,score,rescuedBefore,'playing');hideOverlay();updateHud();
+    music.start(index);
     tone(523,.1);setTimeout(()=>tone(784,.15),100);
     announce((index+1)+'단계 · '+game.stage.name);
   }
@@ -166,6 +174,7 @@
   }
   function clearStage(){
     resetMoveInput();
+    music.stop();
     game.score+=game.hearts*100;updateHud();tone(659,.16);setTimeout(()=>tone(880,.22),140);
     if(game.stageIndex===STAGES.length-1){end(true);return}
     loadBackground(game.stageIndex+1);
@@ -174,13 +183,14 @@
   }
   function end(won){
     resetMoveInput();
+    music.stop();
     game.mode=won?'won':'lost';
     if(won)showOverlay('5개 스테이지 완료!','공룡알 구조<br>대성공!','총 '+(game.rescuedBefore+game.collected)+'개의 공룡알 · 최종 점수 '+game.score.toLocaleString('ko-KR')+'점','처음부터 다시','주안이와 시안이가 모든 둥지를 지켰어요!');
     else{tone(220,.22,'triangle');showOverlay('다시 도전!','이번 스테이지를<br>다시 해봐요!','현재 '+(game.stageIndex+1)+'단계 · '+game.stage.name+'에서 공룡알 '+game.collected+'개를 구했어요.','이 스테이지 재도전','시작할 때의 점수와 하트 5개로 돌아갑니다.')}
   }
   function pause(){
-    if(game.mode==='playing'){resetMoveInput();game.mode='paused';showOverlay('잠시 쉬어요','일시정지','준비되면 탐험을 이어가세요.','계속하기','P 키를 눌러도 계속할 수 있어요.');updateHud()}
-    else if(game.mode==='paused'){game.mode='playing';hideOverlay();updateHud()}
+    if(game.mode==='playing'){resetMoveInput();game.mode='paused';music.pause();showOverlay('잠시 쉬어요','일시정지','준비되면 탐험을 이어가세요.','계속하기','P 키를 눌러도 계속할 수 있어요.');updateHud()}
+    else if(game.mode==='paused'){game.mode='playing';music.resume();hideOverlay();updateHud()}
   }
   function switchHero(){
     if(game.mode!=='playing')return;
@@ -678,7 +688,7 @@
   ui.pause.addEventListener('click',pause);
   ui.pauseSettings.addEventListener('click',()=>ui.settingsOpen.click());
   ui.pauseSound.addEventListener('click',()=>ui.sound.click());
-  ui.sound.addEventListener('click',()=>{muted=!muted;ui.sound.textContent=muted?'🔇':'🔊';ui.sound.setAttribute('aria-label',muted?'소리 켜기':'소리 끄기');ui.sound.title=muted?'소리 켜기':'소리 끄기';ui.pauseSound.textContent=muted?'소리 켜기':'소리 끄기'});
+  ui.sound.addEventListener('click',()=>{muted=!muted;music.setMuted(muted);ui.sound.textContent=muted?'🔇':'🔊';ui.sound.setAttribute('aria-label',muted?'소리 켜기':'소리 끄기');ui.sound.title=muted?'소리 켜기':'소리 끄기';ui.pauseSound.textContent=muted?'소리 켜기':'소리 끄기'});
   document.addEventListener('keydown',e=>{
     if(!ui.settings.hidden){
       if(e.code==='Escape'){e.preventDefault();closeSettings()}
@@ -714,5 +724,5 @@
     const release=()=>button.classList.remove('pressed');
     button.addEventListener('pointerup',release);button.addEventListener('pointercancel',release);button.addEventListener('lostpointercapture',release);
   }
-  prepareGraphics();updateHud();requestAnimationFrame(frame);
+  prepareGraphics();void music.preload(0);updateHud();requestAnimationFrame(frame);
 })();
