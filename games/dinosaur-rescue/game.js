@@ -10,6 +10,10 @@
     text: document.getElementById('overlayText'),
     hint: document.getElementById('overlayHint'),
     play: document.getElementById('playButton'),
+    pause: document.getElementById('pauseButton'),
+    pauseMenu: document.getElementById('pauseMenu'),
+    pauseSound: document.getElementById('pauseSoundButton'),
+    pauseSettings: document.getElementById('pauseSettingsButton'),
     announcement: document.getElementById('announcement'),
     sound: document.getElementById('soundButton'),
     settingsOpen: document.getElementById('controlsSettingsButton'),
@@ -26,7 +30,8 @@
     hearts: document.getElementById('heartCount'),
     hero: document.getElementById('heroName')
   };
-  const W = 960, H = 540, FLOOR = 466;
+  let W = 960;
+  const H = 540, FLOOR = 466;
   const STAGES = [
     {name:'햇살 초원',world:1850,ground:['#76ad58','#765440'],platforms:[[455,365,175],[1260,355,190]],eggs:[[330,410],[545,319],[1060,410],[1350,309]],rocks:[780],thorns:[],fossils:[220,680,1180,1580],enemies:[['raptor',1030,80,1.4]],chase:false},
     {name:'버섯 숲',world:2250,ground:['#78a16a','#594935'],platforms:[[420,365,175],[850,315,180],[1430,355,190],[1840,320,175]],eggs:[[280,410],[510,319],[940,269],[1180,410],[1520,309],[1920,274]],rocks:[690,1680],thorns:[1270],fossils:[210,740,1100,1600,2020],enemies:[['raptor',1060,95,1.7],['ptero',1630,90,1.25]],chase:false},
@@ -105,17 +110,20 @@
 
   function showOverlay(kicker,title,text,button,hint) {
     ui.overlay.classList.remove('intro');
+    ui.pause.hidden=true;
+    ui.pauseMenu.hidden=game.mode!=='paused';
     ui.kicker.textContent=kicker; ui.title.innerHTML=title; ui.text.textContent=text;
     ui.play.textContent=button; ui.hint.textContent=hint || '';
     ui.overlay.inert=false;ui.overlay.removeAttribute('aria-hidden');
     ui.overlay.classList.remove('hidden');
   }
-  function hideOverlay(){ui.overlay.classList.add('hidden');ui.overlay.inert=true;ui.overlay.setAttribute('aria-hidden','true')}
+  function hideOverlay(){ui.overlay.classList.add('hidden');ui.overlay.inert=true;ui.overlay.setAttribute('aria-hidden','true');ui.pauseMenu.hidden=true}
   function announce(text){
     ui.announcement.textContent=text; ui.announcement.classList.add('show');
     clearTimeout(announceTimer); announceTimer=setTimeout(()=>ui.announcement.classList.remove('show'),1400);
   }
   function updateHud(){
+    ui.pause.hidden=game.mode!=='playing';
     ui.eggs.textContent=game.collected; ui.score.textContent=game.score.toLocaleString('ko-KR');
     ui.eggTotal.textContent=game.eggs.length;
     ui.stage.textContent=(game.stageIndex+1)+' / 5 · '+game.stage.name;
@@ -171,8 +179,8 @@
     else{tone(220,.22,'triangle');showOverlay('다시 도전!','이번 스테이지를<br>다시 해봐요!','현재 '+(game.stageIndex+1)+'단계 · '+game.stage.name+'에서 공룡알 '+game.collected+'개를 구했어요.','이 스테이지 재도전','시작할 때의 점수와 하트 5개로 돌아갑니다.')}
   }
   function pause(){
-    if(game.mode==='playing'){game.mode='paused';showOverlay('잠시 쉬어요','일시정지','준비되면 탐험을 이어가세요.','계속하기','P 키를 눌러도 계속할 수 있어요.')}
-    else if(game.mode==='paused'){game.mode='playing';hideOverlay()}
+    if(game.mode==='playing'){resetMoveInput();game.mode='paused';showOverlay('잠시 쉬어요','일시정지','준비되면 탐험을 이어가세요.','계속하기','P 키를 눌러도 계속할 수 있어요.');updateHud()}
+    else if(game.mode==='paused'){game.mode='playing';hideOverlay();updateHud()}
   }
   function switchHero(){
     if(game.mode!=='playing')return;
@@ -293,7 +301,7 @@
       if(game.collected===game.eggs.length)clearStage();
       else if(game.t%2<dt)announce('남은 공룡알을 모두 구해 주세요!');
     }
-    game.camera=Math.max(0,Math.min(game.stage.world-W,p.x-270));
+    game.camera=Math.max(0,Math.min(Math.max(0,game.stage.world-W),p.x-270));
   }
 
   function rounded(x,y,w,h,r,fill,stroke,line=1){
@@ -314,16 +322,21 @@
     const image=backgrounds[game.stageIndex];
     if(image.complete&&image.naturalWidth){
       const pan=camera/Math.max(1,game.stage.world-W);
-      ctx.drawImage(image,-pan*250,-82,1210,681);
+      // Widen the decorative backdrop uniformly, never stretch the painted scene.
+      const backdropScale=Math.max(1,(W+250)/1210);
+      const backdropWidth=1210*backdropScale;
+      ctx.drawImage(image,-pan*(backdropWidth-W),-82*backdropScale,backdropWidth,681*backdropScale);
     }else{
       const sky=ctx.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#8fd5e4');sky.addColorStop(1,'#396b76');ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
       for(let i=0;i<8;i++)tree(i*190-(camera*.2%190),.8,true);
     }
     if(groundArt.complete&&groundArt.naturalWidth){
       const row=game.stageIndex===2?1:game.stageIndex===3?2:0;
-      const sy=[128,430,714][row],sh=[302,284,310][row],top=[FLOOR-25,FLOOR-15,FLOOR-5][row];
+      // Align each painted surface with the shared physics floor (FLOOR).
+      const sy=[128,430,714][row],sh=[302,284,310][row],top=[FLOOR-25,FLOOR-18,FLOOR][row];
       const tileW=960,tileH=H-top+7,first=Math.floor(camera/tileW);
-      for(let tile=first;tile<=first+1;tile++){
+      const last=Math.ceil((camera+W)/tileW);
+      for(let tile=first;tile<=last;tile++){
         const screenX=tile*tileW-camera;
         ctx.save();
         if(tile%2){ctx.translate(screenX+tileW,0);ctx.scale(-1,1)}
@@ -357,7 +370,8 @@
     if(platformArt.complete&&platformArt.naturalWidth){
       const cellW=platformArt.width/3,cellH=platformArt.height/2;
       const cell=[5,4,1,2,3][game.stageIndex],col=cell%3,row=Math.floor(cell/3);
-      ctx.drawImage(platformArt,col*cellW, row*cellH+145,cellW,270,x-13,p.y-13,p.w+26,53);
+      const surfaceOffset=[2,2,3,-7,-6,-6][cell];
+      ctx.drawImage(platformArt,col*cellW, row*cellH+145,cellW,270,x-13,p.y-13-surfaceOffset,p.w+26,53);
       return;
     }
     const rock=game.stageIndex===3?'#566589':game.stageIndex===2?'#9b5e46':'#806346';
@@ -463,7 +477,8 @@
     if(!sprite.image.complete||!sprite.image.naturalWidth){childFallback(x,y,type,face,run,inv);return}
     const {image,crop,actions}=sprite;
     const height=132,width=height*crop.w/crop.h;
-    const bounce=run?Math.abs(Math.sin(run))*2:0;
+    // The running sheet already animates the legs; keep each frame's lowest boot on the collision line.
+    const footOffset=[1,1,5,5][Math.floor(run*.55)%4];
     ctx.save();
     ctx.translate(x+19,y+66);
     ctx.scale(face<0?-1:1,1);
@@ -472,10 +487,11 @@
       const frame=airborne?(game.player.vy<0?4:5):[0,1,2,3][step];
       const cw=actions.width/3,ch=actions.height/2;
       const aw=136,ah=132;
-      ctx.drawImage(actions,(frame%3)*cw,Math.floor(frame/3)*ch,cw,ch,-aw/2,-ah-bounce,aw,ah);
+      ctx.drawImage(actions,(frame%3)*cw,Math.floor(frame/3)*ch,cw,ch,-aw/2,-ah+(airborne?0:footOffset),aw,ah);
     }else{
       ctx.rotate(airborne?-.07:0);
-      ctx.drawImage(image,crop.x,crop.y,crop.w,crop.h,-width/2,-height-bounce,width,height);
+      const staticFootOffset=type==='sian'?6:1;
+      ctx.drawImage(image,crop.x,crop.y,crop.w,crop.h,-width/2,-height+staticFootOffset,width,height);
     }
     ctx.restore();
   }
@@ -564,6 +580,13 @@
     root.style.setProperty('--game-view-height',height+'px');
     root.style.setProperty('--game-view-left',(view?.offsetLeft||0)+'px');
     root.style.setProperty('--game-view-top',(view?.offsetTop||0)+'px');
+    const mobileLayout=window.matchMedia?.('(pointer: coarse), (max-width: 760px)').matches;
+    const nextWidth=mobileLayout&&width>height?Math.round(H*width/height):960;
+    if(nextWidth!==W){
+      W=nextWidth;
+      canvas.width=W;
+      game.camera=Math.max(0,Math.min(game.camera,Math.max(0,game.stage.world-W)));
+    }
   }
   function handleOrientationChange(){
     syncVisibleViewport();
@@ -631,7 +654,7 @@
     ui.settings.hidden=false;
     ui.settingsClose.focus();
   });
-  function closeSettings(){ui.settings.hidden=true;ui.settingsOpen.focus()}
+  function closeSettings(){ui.settings.hidden=true;(game.mode==='paused'?ui.pauseSettings:ui.settingsOpen).focus()}
   ui.settingsClose.addEventListener('click',closeSettings);
   ui.settings.addEventListener('click',e=>{if(e.target===ui.settings)closeSettings()});
   async function requestMobileLandscape(){
@@ -652,7 +675,10 @@
     else if(game.mode==='lost')retryStage();
     else start();
   });
-  ui.sound.addEventListener('click',()=>{muted=!muted;ui.sound.textContent=muted?'🔇':'🔊';ui.sound.setAttribute('aria-label',muted?'소리 켜기':'소리 끄기');ui.sound.title=muted?'소리 켜기':'소리 끄기'});
+  ui.pause.addEventListener('click',pause);
+  ui.pauseSettings.addEventListener('click',()=>ui.settingsOpen.click());
+  ui.pauseSound.addEventListener('click',()=>ui.sound.click());
+  ui.sound.addEventListener('click',()=>{muted=!muted;ui.sound.textContent=muted?'🔇':'🔊';ui.sound.setAttribute('aria-label',muted?'소리 켜기':'소리 끄기');ui.sound.title=muted?'소리 켜기':'소리 끄기';ui.pauseSound.textContent=muted?'소리 켜기':'소리 끄기'});
   document.addEventListener('keydown',e=>{
     if(!ui.settings.hidden){
       if(e.code==='Escape'){e.preventDefault();closeSettings()}

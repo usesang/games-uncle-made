@@ -2,6 +2,8 @@
 
 컴퓨터와 모바일 브라우저에서 바로 즐기는 게임 모음집입니다.
 
+새 게임의 모바일 화면·터치 조작·안전 영역·시각 정렬 기준은 [GAME_UI_GUIDELINES.md](GAME_UI_GUIDELINES.md)를 따릅니다.
+
 - 모음집 첫 화면: `index.html`
 - 첫 번째 게임: `games/dinosaur-rescue/index.html`
 

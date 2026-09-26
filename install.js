@@ -1,6 +1,6 @@
 (() => {
-  const trigger = document.querySelector('[data-install-trigger]');
-  if (!trigger) return;
+  const triggers = [...document.querySelectorAll('[data-install-trigger]')];
+  if (!triggers.length) return;
 
   const installed = () =>
     window.matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches ||
@@ -8,13 +8,13 @@
   if (installed() || !window.matchMedia('(pointer: coarse), (max-width: 760px)').matches) return;
 
   let installPrompt = null;
-  trigger.hidden = false;
+  triggers.forEach(trigger => { trigger.hidden = false; });
 
   window.addEventListener('beforeinstallprompt', event => {
     event.preventDefault();
     installPrompt = event;
   });
-  window.addEventListener('appinstalled', () => { trigger.hidden = true; });
+  window.addEventListener('appinstalled', () => { triggers.forEach(trigger => { trigger.hidden = true; }); });
 
   const dialog = document.createElement('dialog');
   dialog.className = 'install-dialog';
@@ -31,17 +31,18 @@
   dialog.querySelector('[data-install-close]').addEventListener('click', () => dialog.close());
   dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
 
-  trigger.addEventListener('click', async () => {
+  async function openInstall() {
     if (installPrompt) {
       const prompt = installPrompt;
       installPrompt = null;
       try {
         await prompt.prompt();
         const choice = await prompt.userChoice;
-        if (choice?.outcome === 'accepted') trigger.hidden = true;
+        if (choice?.outcome === 'accepted') triggers.forEach(trigger => { trigger.hidden = true; });
       } catch { dialog.showModal(); }
       return;
     }
     dialog.showModal();
-  });
+  }
+  triggers.forEach(trigger => trigger.addEventListener('click', openInstall));
 })();

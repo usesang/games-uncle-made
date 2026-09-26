@@ -21,6 +21,7 @@
 <body>
   <main class="shell">
     <header class="topbar">
+      <button id="pauseButton" class="icon-button mobile-pause" type="button" aria-label="게임 일시정지" title="게임 일시정지" hidden>Ⅱ</button>
       <a class="collection-back" href="../../" aria-label="게임 모음집으로 돌아가기">← 모음집</a>
       <div class="brand"><span class="brand-icon">🦖</span><div><span class="eyebrow">DINOSAUR RESCUE</span><h1>주안이와 시안이 <span>공룡알 대소동</span></h1></div></div>
       <button class="install-open game-install" type="button" data-install-trigger hidden>앱 설치</button>
@@ -39,6 +40,12 @@
             <h2 id="overlayTitle">공룡알을<br>구하러 가자!</h2>
             <p id="overlayText">5개 지역을 탐험하세요. 두 친구를 교대하며 공룡알을 모으고, 공룡들을 피해 둥지까지 가요.</p>
             <button id="playButton" class="play-button" type="button" disabled>그림 불러오는 중…</button>
+            <div id="pauseMenu" class="pause-menu" hidden>
+              <button id="pauseSoundButton" type="button">소리 끄기</button>
+              <button id="pauseSettingsButton" type="button">조작 설정</button>
+              <button type="button" data-install-trigger hidden>앱 설치</button>
+              <a href="../../">게임 모음집</a>
+            </div>
             <div id="overlayHint" class="overlay-hint">이동 ← → · 점프 Space · 교대 C · 아빠 V</div>
           </div>
           <a class="game-copyright" href="mailto:usesang+code@gmail.com" aria-label="usesang에게 이메일 보내기">©usesang</a>
